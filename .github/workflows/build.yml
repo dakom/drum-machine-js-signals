@@ -1,6 +1,9 @@
 name: Deploy to Pages 
 
-on: [push]
+on:
+  push:
+    branches: [$default-branch]
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
