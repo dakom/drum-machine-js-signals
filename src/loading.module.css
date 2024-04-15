@@ -1,7 +1,13 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
 .loading {
-    font-size: 10rem;
-    text-align: center;
-    padding-top: 30rem;
+    font-size: 8rem;
 }
 
 .button {

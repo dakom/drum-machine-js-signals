@@ -34,6 +34,6 @@ export const CONFIG = {
             id: "BassDrum",
         },
     ],
-    DEBUG_AUTO_START: import.meta.env.DEV ? true: false,
+    DEBUG_AUTO_START: import.meta.env.DEV ? false : false,
     INITIAL_PATTERN: DrumAndBass
 }

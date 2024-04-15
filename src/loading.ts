@@ -10,7 +10,7 @@ export class LoadingScreen {
 
     constructor(private initialState: Signal.State<InitialState>) {
         this.elem = document.createElement('div');
-        this.elem.classList.add(style.loading);
+        this.elem.classList.add(style.container);
     }
 
     render() {
@@ -20,6 +20,7 @@ export class LoadingScreen {
             case "loading":
                 this.textElem = document.createElement('div');
                 this.textElem.innerText = 'Loading...';
+                this.textElem.classList.add(style.loading);
                 this.elem.appendChild(this.textElem);
                 break;
             case "ready":
