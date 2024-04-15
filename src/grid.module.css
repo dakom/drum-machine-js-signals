@@ -1,0 +1,19 @@
+.grid, .gridLabels {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.row {
+    display: flex;
+    gap: 1rem;
+}
+
+.label {
+    height: 4rem; /* This is the height of the cell */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    color: #2c2d2d
+}

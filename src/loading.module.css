@@ -1,0 +1,19 @@
+.loading {
+    font-size: 10rem;
+    text-align: center;
+    padding-top: 30rem;
+}
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 3rem 10rem;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 5rem;
+    cursor: pointer;
+    border-radius: 10px;
+    user-select: none;
+}

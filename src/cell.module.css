@@ -1,0 +1,24 @@
+.cell {
+    width: 5.5rem;
+    height: 4rem;
+    border-radius: 1rem;
+    cursor: pointer;
+
+    border: 5px solid gray;
+}
+
+.phaseOff {
+    background-color: rgb(216, 217, 221);
+    transition: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.phaseMute {
+    background-color: rgb(91, 117, 209); 
+    transition: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.phasePlaying {
+    background-color: rgb(255, 29, 90);
+}
