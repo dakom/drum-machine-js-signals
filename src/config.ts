@@ -70,6 +70,6 @@ function DrumAndBass():Pattern {
             ],
         ],
         speed: 12.0,
-        volume: 0.0
+        volume: 0.5
     }
 }
