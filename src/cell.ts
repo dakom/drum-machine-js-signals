@@ -24,11 +24,10 @@ export class CellId {
 export class Cell {
     public readonly elem:HTMLDivElement;
     active: Signal.State<boolean>;
-    phase: Signal.Computed<CellPhase>;
     lastPhase: CellPhase | undefined;
 
 
-    constructor(public readonly id: CellId, currentNote: Signal.Computed<number>) {
+    constructor(public readonly id: CellId) {
         this.elem = document.createElement('div');
         this.elem.classList.add(style.cell);
 
@@ -38,20 +37,21 @@ export class Cell {
             this.active.set(!this.active.get());
         });
 
-        this.phase = new Signal.Computed(() => {
-            if (!this.active.get()) {
-                return CellPhase.Off;
-            } else if (this.id.col === currentNote.get()) {
-                return CellPhase.Playing;
-            } else {
-                return CellPhase.Mute;
-            }
-        });
-
     }
 
-    renderPhase() {
-        const phase = this.phase.get();
+    phase(currentNote: number) {
+        if(!this.active.get()) {
+            return CellPhase.Off;
+        } else if(this.id.col === currentNote) {
+            return CellPhase.Playing;
+        } else {
+            return CellPhase.Mute;
+        }
+    }
+
+    render(currentNote: number) {
+        const phase = this.phase(currentNote);    
+
         if(phase === this.lastPhase) {
             return;
         }

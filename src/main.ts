@@ -115,13 +115,14 @@ effect(() => {
 
                     // kick off the renderer for the components that render every tick 
                     effect(() => {
-                        [grid, playhead].forEach(renderable => renderable.renderOnTick());
+                        playhead.render();
+                        grid.render(pauseButton.playing.get());
                         return () => {}
                     });
 
                     // kick off the renderer for the components that render on immediate state changes
                     effect(() => {
-                        [pauseButton].forEach(renderable => renderable.renderOnState());
+                        pauseButton.render();
                         return () => {}
                     });
 

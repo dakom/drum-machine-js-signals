@@ -17,6 +17,8 @@ export class Grid {
     // patternNotes will not be updated every frame, just when the pattern changes
     public readonly patternNotes: Signal.Computed<boolean[][]>;
 
+    private lastNote = -1;
+
     constructor(playhead: Playhead) {
 
         this.elem = document.createElement('div');
@@ -34,7 +36,7 @@ export class Grid {
 
             for (let col = 0; col < CONFIG.NOTES; col++) {
                 const id = new CellId(row, col);
-                const cell = new Cell(id, this.currentNote);
+                const cell = new Cell(id);
                 rowElem.appendChild(cell.elem);
                 this.cells.set(id.toString(), cell);
             }
@@ -64,15 +66,23 @@ export class Grid {
 
         this.playingAudioIds = new Signal.Computed(() => {
             const ids = Array.from(this.cells.values())
-                .filter(cell => cell.phase.get() === CellPhase.Playing)
+                .filter(cell => cell.phase(this.currentNote.get()) === CellPhase.Playing)
                 .map(cell => CONFIG.AUDIO[cell.id.row].id);
 
             return {note: this.currentNote.get(), ids};
         });
     }
 
-    renderOnTick() {
-        this.cells.forEach(cell => cell.renderPhase());
+    render(trackNote: boolean) {
+        const currentNote = trackNote ? this.currentNote.get() : Signal.subtle.untrack(() => this.currentNote.get());
+
+        if(trackNote && currentNote === this.lastNote) {
+            return;
+        }
+
+        this.lastNote = currentNote;
+
+        this.cells.forEach(cell => cell.render(currentNote));
     }
 
     setPattern(pattern: Pattern) {

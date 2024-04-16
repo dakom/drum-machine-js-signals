@@ -40,7 +40,7 @@ export class PauseButton {
 
     }
 
-    renderOnState() {
+    render() {
         if(this.playing.get()) {
             this.imgElem.innerHTML = pauseButtonSvg({
                 colorClass: this.hover.get() ? style.colorHover : style.color
