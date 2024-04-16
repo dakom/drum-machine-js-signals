@@ -38,6 +38,7 @@ function serialize(pattern: Pattern): string {
         let audioRow = 0;
         for(let j = 0; j < CONFIG.NOTES; j++) {
             if(pattern.notes[i][j]) {
+                // each row is just encoded as an integer with the bits set for each note
                 audioRow |= 1 << j;
             }
         }
@@ -62,6 +63,7 @@ function deserialize(s: string): Pattern {
         const audioRow = parseInt(parts[i + 2]);
         const row = [];
         for(let j = 0; j < CONFIG.NOTES; j++) {
+            // each row is just decoded as an integer with the bits set for each note
             row.push((audioRow & (1 << j)) !== 0);
         }
         notes.push(row);
