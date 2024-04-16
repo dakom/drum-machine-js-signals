@@ -9,6 +9,7 @@ import {effect} from "./polyfill"
 import { Signal } from 'signal-polyfill';
 import { Assets } from './assets';
 import { CONFIG } from './config';
+import { getPatternUrl, setPatternUrl } from './pattern';
 
 // main container
 const main = document.querySelector('#main') as HTMLDivElement;
@@ -104,7 +105,10 @@ effect(() => {
                     main.appendChild(app);
 
                     // apply the initial pattern
-                    grid.setPattern(CONFIG.INITIAL_PATTERN);
+                    const pattern = getPatternUrl() ?? CONFIG.INITIAL_PATTERN;
+
+                    grid.setPattern(pattern);
+                    sliders.setPattern(pattern);
 
                     // kick off the renderer
                     effect(() => {
@@ -123,6 +127,18 @@ effect(() => {
                         }
                         return () => {}
                     });
+
+                    // kick off the url updater
+                    effect(() => {
+                        const pattern = {
+                            speed: sliders.speed().get(),
+                            volume: sliders.volume().get(),
+                            notes: grid.patternNotes.get(),
+                        }
+                        setPatternUrl(pattern);
+                        return () => {}
+                    })
+
                 })
             break;
         // exhaustiveness

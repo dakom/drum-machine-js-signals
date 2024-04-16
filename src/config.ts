@@ -1,15 +1,13 @@
-import { DrumAndBass } from "./pattern";
+import { Pattern } from "./pattern"
 
 export const CONFIG = {
     SPEED: {
         min: 1.0,
         max: 20.0,
-        value: 12.0,
     },
     VOLUME: {
         min: 0.0,
         max: 1.0,
-        value: 0.5,
     },
     NOTES: 16,
     AUDIO: [
@@ -34,6 +32,44 @@ export const CONFIG = {
             id: "BassDrum",
         },
     ],
-    DEBUG_AUTO_START: import.meta.env.DEV ? false : false,
-    INITIAL_PATTERN: DrumAndBass
+    DEBUG_AUTO_START: import.meta.env.DEV ? true : false,
+    INITIAL_PATTERN: DrumAndBass()
+}
+
+
+function DrumAndBass():Pattern {
+    return {
+        notes: [
+            // Cymbal
+            [
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+            ],
+            // HiHat
+            [
+                false, false, true, false,
+                false, false, false, true,
+                false, true, false, false,
+                true, false, false, false,
+            ],
+            // Snare
+            [
+                false, false, false, false,
+                true, false, false, false,
+                false, false, false, false,
+                true, false, false, false,
+            ],
+            // Bass Drum
+            [
+                true, false, false, false,
+                false, false, false, false,
+                false, false, true, false,
+                false, false, false, false,
+            ],
+        ],
+        speed: 12.0,
+        volume: 0.0
+    }
 }

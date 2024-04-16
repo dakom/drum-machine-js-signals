@@ -6,11 +6,17 @@ import { Playhead } from './playhead';
 import { AudioId } from './mixer';
 import { Pattern } from './pattern';
 
+type CellIdKey = string;
+
 export class Grid {
-    public readonly cells: Map<CellId, Cell>;
+    private cells: Map<CellIdKey, Cell>;
     public readonly elem: HTMLDivElement;
     public readonly currentNote: Signal.Computed<number>;
+    // this signal is potentially updated every frame - effects should be careful!
     public readonly playingAudioIds: Signal.Computed<{note: number, ids: AudioId[]}>;
+    // patternNotes will not be updated every frame, just when the pattern changes
+    public readonly patternNotes: Signal.Computed<boolean[][]>;
+
     private lastNote: number = -1;
 
     constructor(playhead: Playhead) {
@@ -29,12 +35,34 @@ export class Grid {
             this.elem.appendChild(rowElem);
 
             for (let col = 0; col < CONFIG.NOTES; col++) {
-                const id = { col, row };
+                const id = new CellId(row, col);
                 const cell = new Cell(id, this.currentNote);
                 rowElem.appendChild(cell.elem);
-                this.cells.set(id, cell);
+                this.cells.set(id.toString(), cell);
             }
         }
+
+        this.patternNotes = new Signal.Computed(() => {
+            const notes = [];
+
+            for (let i = 0; i < CONFIG.AUDIO.length; i++) {
+                const row:boolean[] = [];
+
+                for(let j = 0; j < CONFIG.NOTES; j++) {
+                    const key = new CellId(i, j).toString();
+                    const cell = this.cells.get(key);
+                    if(!cell) {
+                        throw new Error(`No cell for ${key}`);
+                    }
+
+                    row.push(cell.active.get())
+                }
+
+                notes.push(row)
+            }
+
+            return notes
+        });
 
         this.playingAudioIds = new Signal.Computed(() => {
             const ids = Array.from(this.cells.values())
@@ -56,8 +84,7 @@ export class Grid {
 
     setPattern(pattern: Pattern) {
         this.cells.forEach(cell => {
-            const {row, col} = cell.id;
-            if(pattern[row][col]) {
+            if(pattern.notes[cell.id.row][cell.id.col]) {
                 cell.active.set(true);
             }
         });

@@ -1,7 +1,25 @@
 import { Signal } from 'signal-polyfill';
 import style from './cell.module.css'
 
-export type CellId = { col: number; row: number; }
+export class CellId {
+    constructor(public readonly row: number, public readonly col: number) {}
+
+    equals(other: CellId): boolean {
+        return this.row === other.row && this.col === other.col;
+    }
+    
+    toString(): string {
+        return `${this.row},${this.col}`;
+    }
+
+    static fromString(s: string): CellId {
+        const parts = s.split(',');
+        if(parts.length !== 2) {
+            throw new Error(`Invalid CellId string: ${s}`);
+        }
+        return new CellId(parseInt(parts[0]), parseInt(parts[1]));
+    }
+}
 
 export class Cell {
     public readonly elem:HTMLDivElement;
