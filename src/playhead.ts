@@ -27,7 +27,7 @@ export class Playhead {
         })
     }
 
-    render() {
+    renderOnTick() {
         // cellWidth is 5.5, cell spacing is 1, so it's 6.5 per cell
         // however, the playhead is positioned from bottom-left corner
         // so it's actually the width of one less cell

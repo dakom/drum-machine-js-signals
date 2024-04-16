@@ -10,6 +10,7 @@ import { Signal } from 'signal-polyfill';
 import { Assets } from './assets';
 import { CONFIG } from './config';
 import { getPatternUrl, setPatternUrl } from './pattern';
+import { PauseButton } from './pause';
 
 // main container
 const main = document.querySelector('#main') as HTMLDivElement;
@@ -79,7 +80,8 @@ effect(() => {
                 .then(() => {
                     // audio is ready, create the components
                     const sliders = new Sliders();
-                    const ticker = new Ticker(mixer);
+                    const pauseButton = new PauseButton();
+                    const ticker = new Ticker(mixer, pauseButton);
                     const playhead = new Playhead(ticker, sliders);
                     const grid = new Grid(playhead);
                     const gridLabels = new GridLabels();
@@ -101,6 +103,7 @@ effect(() => {
                     app.classList.add(style.app);
                     app.appendChild(gridAndLabelsElem);
                     app.appendChild(sliders.elem);
+                    app.appendChild(pauseButton.elem);
 
                     main.appendChild(app);
 
@@ -110,9 +113,15 @@ effect(() => {
                     grid.setPattern(pattern);
                     sliders.setPattern(pattern);
 
-                    // kick off the renderer
+                    // kick off the renderer for the components that render every tick 
                     effect(() => {
-                        [grid, playhead].forEach(renderable => renderable.render());
+                        [grid, playhead].forEach(renderable => renderable.renderOnTick());
+                        return () => {}
+                    });
+
+                    // kick off the renderer for the components that render on immediate state changes
+                    effect(() => {
+                        [pauseButton].forEach(renderable => renderable.renderOnState());
                         return () => {}
                     });
 

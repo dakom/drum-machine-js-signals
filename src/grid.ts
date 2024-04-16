@@ -73,7 +73,7 @@ export class Grid {
         });
     }
 
-    render() {
+    renderOnTick() {
         const note = this.currentNote.get();
         if(note === this.lastNote) {
             return;

@@ -9,7 +9,6 @@ export interface Pattern {
 }
 
 export function setPatternUrl(pattern: Pattern) {
-    console.log(pattern);
     const url = new URL(window.location.href);
     url.searchParams.set('pattern', serialize(pattern));
     window.history.replaceState({}, '', url.toString());
