@@ -91,7 +91,7 @@ export class Grid {
 
 export class GridLabels {
     public readonly elem: HTMLDivElement;
-    public enabled: Map<AudioId, Signal.State<boolean>> = new Map();
+    public enabledSignals: Map<AudioId, Signal.State<boolean>> = new Map();
     labelElems: Map<AudioId, HTMLDivElement> = new Map();
 
     constructor(private mixer: AudioMixer) {
@@ -99,16 +99,16 @@ export class GridLabels {
         this.elem.classList.add(style.gridLabels);
 
         CONFIG.AUDIO.forEach(({id, label}) => {
-            this.enabled.set(id, new Signal.State(true));
+            this.enabledSignals.set(id, new Signal.State(true));
             const labelElem = document.createElement('div');
             labelElem.classList.add(style.label);
             labelElem.innerText = label; 
             labelElem.addEventListener('click', () => {
-                const enabled = this.enabled.get(id);
-                if(!enabled) {
+                const enabledSignal = this.enabledSignals.get(id);
+                if(!enabledSignal) {
                     throw new Error(`No enabled signal for ${id}`);
                 }
-                enabled.set(!enabled.get());
+                enabledSignal.set(!enabledSignal.get());
             });
             this.labelElems.set(id, labelElem);
             this.elem.appendChild(labelElem);
@@ -116,7 +116,7 @@ export class GridLabels {
     }
 
     render() {
-        this.enabled.forEach((enabledSignal, id) => {
+        this.enabledSignals.forEach((enabledSignal, id) => {
             const labelElem = this.labelElems.get(id);
             if(!labelElem) {
                 throw new Error(`No label element for ${id}`);
