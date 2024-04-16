@@ -50,9 +50,8 @@ export class Cell {
 
     }
 
-    render() {
+    renderPhase() {
         const phase = this.phase.get();
-
         if(phase === this.lastPhase) {
             return;
         }

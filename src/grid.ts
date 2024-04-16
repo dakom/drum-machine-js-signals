@@ -17,8 +17,6 @@ export class Grid {
     // patternNotes will not be updated every frame, just when the pattern changes
     public readonly patternNotes: Signal.Computed<boolean[][]>;
 
-    private lastNote: number = -1;
-
     constructor(playhead: Playhead) {
 
         this.elem = document.createElement('div');
@@ -74,12 +72,7 @@ export class Grid {
     }
 
     renderOnTick() {
-        const note = this.currentNote.get();
-        if(note === this.lastNote) {
-            return;
-        }
-        this.cells.forEach(cell => cell.render());
-        this.lastNote = note;
+        this.cells.forEach(cell => cell.renderPhase());
     }
 
     setPattern(pattern: Pattern) {
