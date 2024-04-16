@@ -5,6 +5,7 @@ import style from './grid.module.css'
 import { Playhead } from './playhead';
 import { AudioId } from './mixer';
 import { Pattern } from './pattern';
+import { PauseButton } from './pause';
 
 type CellIdKey = string;
 
@@ -17,9 +18,7 @@ export class Grid {
     // patternNotes will not be updated every frame, just when the pattern changes
     public readonly patternNotes: Signal.Computed<boolean[][]>;
 
-    private lastNote = -1;
-
-    constructor(playhead: Playhead) {
+    constructor(playhead: Playhead, private pauseButton: PauseButton) {
 
         this.elem = document.createElement('div');
         this.elem.classList.add(style.grid);
@@ -73,14 +72,10 @@ export class Grid {
         });
     }
 
-    render(trackNote: boolean) {
-        const currentNote = trackNote ? this.currentNote.get() : Signal.subtle.untrack(() => this.currentNote.get());
-
-        if(trackNote && currentNote === this.lastNote) {
-            return;
-        }
-
-        this.lastNote = currentNote;
+    render() {
+        // if we're playing, then we need to get the current note over time changes, and re-render the cells every tick
+        // if we're paused, then we only need to re-render cells with the current paused note (which won't re-render every tick, only if cell.active changes)
+        const currentNote = this.pauseButton.playing.get() ? this.currentNote.get() : Signal.subtle.untrack(() => this.currentNote.get());
 
         this.cells.forEach(cell => cell.render(currentNote));
     }

@@ -83,7 +83,7 @@ effect(() => {
                     const pauseButton = new PauseButton();
                     const ticker = new Ticker(mixer, pauseButton);
                     const playhead = new Playhead(ticker, sliders);
-                    const grid = new Grid(playhead);
+                    const grid = new Grid(playhead, pauseButton);
                     const gridLabels = new GridLabels();
 
 
@@ -115,8 +115,7 @@ effect(() => {
 
                     // kick off the renderer for the components that render every tick 
                     effect(() => {
-                        playhead.render();
-                        grid.render(pauseButton.playing.get());
+                        [grid, playhead].forEach(component => component.render());
                         return () => {}
                     });
 
