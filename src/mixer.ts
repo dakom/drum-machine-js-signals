@@ -5,12 +5,14 @@ export type AudioId = string;
 export class AudioMixer {
     public ctx: AudioContext;
     private buffers: Map<AudioId, AudioBuffer> = new Map();
-    private gainNode: GainNode;
+    private masterGain: GainNode;
+    private trackGains: Map<AudioId, GainNode> = new Map();
 
     constructor() {
         this.ctx = new AudioContext()
-        this.gainNode = this.ctx.createGain();
-        this.gainNode.connect(this.ctx.destination);
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.connect(this.ctx.destination);
+
     }
 
     async assignAssets(assets: Assets) {
@@ -21,18 +23,26 @@ export class AudioMixer {
 
         for(const { id, audioBuffer } of results) {
             this.buffers.set(id, audioBuffer);
+
+            const trackGain = this.ctx.createGain();
+            trackGain.connect(this.masterGain);
+            this.trackGains.set(id, trackGain);
         }
     }
 
-    setVolume(volume: number) {
-        this.gainNode.gain.value = volume;
+    setMasterVolume(volume: number) {
+        this.masterGain.gain.value = volume;
+    }
+
+    setTrackVolume(id: AudioId, volume: number) {
+        this.trackGains.get(id)!.gain.value = volume;
     }
 
     playSounds(ids: AudioId[]) {
         ids.forEach(id => {
             const source = this.ctx.createBufferSource();
             source.buffer = this.buffers.get(id)!;
-            source.connect(this.gainNode);
+            source.connect(this.trackGains.get(id)!);
             source.start();
         });
     }

@@ -84,7 +84,7 @@ effect(() => {
                     const ticker = new Ticker(mixer, pauseButton);
                     const playhead = new Playhead(ticker, sliders);
                     const grid = new Grid(playhead, pauseButton);
-                    const gridLabels = new GridLabels();
+                    const gridLabels = new GridLabels(mixer);
 
 
                     // append them to the main container
@@ -121,14 +121,14 @@ effect(() => {
 
                     // kick off the renderer for the components that render on immediate state changes
                     effect(() => {
-                        pauseButton.render();
+                        [pauseButton, gridLabels].forEach(component => component.render());
                         return () => {}
                     });
 
                     // kick off the audio effects
                     let lastPlayedNote = -1;
                     effect(() => {
-                        mixer.setVolume(sliders.volume().get());
+                        mixer.setMasterVolume(sliders.volume().get());
                         const audioIdsToPlay = grid.playingAudioIds.get();
                         if(audioIdsToPlay.note !== lastPlayedNote) {
                             lastPlayedNote = audioIdsToPlay.note;

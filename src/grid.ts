@@ -3,7 +3,7 @@ import { Cell, CellId, CellPhase } from './cell';
 import { CONFIG } from './config';
 import style from './grid.module.css'
 import { Playhead } from './playhead';
-import { AudioId } from './mixer';
+import { AudioId, AudioMixer } from './mixer';
 import { Pattern } from './pattern';
 import { PauseButton } from './pause';
 
@@ -91,16 +91,41 @@ export class Grid {
 
 export class GridLabels {
     public readonly elem: HTMLDivElement;
+    public enabled: Map<AudioId, Signal.State<boolean>> = new Map();
+    labelElems: Map<AudioId, HTMLDivElement> = new Map();
 
-    constructor() {
+    constructor(private mixer: AudioMixer) {
         this.elem = document.createElement('div');
         this.elem.classList.add(style.gridLabels);
 
-        CONFIG.AUDIO.forEach(({label}) => {
+        CONFIG.AUDIO.forEach(({id, label}) => {
+            this.enabled.set(id, new Signal.State(true));
             const labelElem = document.createElement('div');
             labelElem.classList.add(style.label);
             labelElem.innerText = label; 
+            labelElem.addEventListener('click', () => {
+                const enabled = this.enabled.get(id);
+                if(!enabled) {
+                    throw new Error(`No enabled signal for ${id}`);
+                }
+                enabled.set(!enabled.get());
+            });
+            this.labelElems.set(id, labelElem);
             this.elem.appendChild(labelElem);
         }) 
+    }
+
+    render() {
+        this.enabled.forEach((enabledSignal, id) => {
+            const labelElem = this.labelElems.get(id);
+            if(!labelElem) {
+                throw new Error(`No label element for ${id}`);
+            }
+
+            const enabled = enabledSignal.get();
+            labelElem.classList.toggle(style.labelDisabled, !enabled);
+
+            this.mixer.setTrackVolume(id, enabled ? 1 : 0);
+        });
     }
 }
