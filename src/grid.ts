@@ -5,7 +5,6 @@ import style from './grid.module.css'
 import { Playhead } from './playhead';
 import { AudioId, AudioMixer } from './mixer';
 import { Pattern } from './pattern';
-import { PauseButton } from './pause';
 
 type CellIdKey = string;
 
@@ -18,7 +17,7 @@ export class Grid {
     // patternNotes will not be updated every frame, just when the pattern changes
     public readonly patternNotes: Signal.Computed<boolean[][]>;
 
-    constructor(playhead: Playhead, private pauseButton: PauseButton) {
+    constructor(playhead: Playhead) {
 
         this.elem = document.createElement('div');
         this.elem.classList.add(style.grid);
@@ -35,7 +34,7 @@ export class Grid {
 
             for (let col = 0; col < CONFIG.NOTES; col++) {
                 const id = new CellId(row, col);
-                const cell = new Cell(id);
+                const cell = new Cell(id, this.currentNote);
                 rowElem.appendChild(cell.elem);
                 this.cells.set(id.toString(), cell);
             }
@@ -65,7 +64,7 @@ export class Grid {
 
         this.playingAudioIds = new Signal.Computed(() => {
             const ids = Array.from(this.cells.values())
-                .filter(cell => cell.phase(this.currentNote.get()) === CellPhase.Playing)
+                .filter(cell => cell.phase() === CellPhase.Playing)
                 .map(cell => CONFIG.AUDIO[cell.id.row].id);
 
             return {note: this.currentNote.get(), ids};
@@ -73,11 +72,7 @@ export class Grid {
     }
 
     render() {
-        // if we're playing, then we need to get the current note over time changes, and re-render the cells every tick
-        // if we're paused, then we only need to re-render cells with the current paused note (which won't re-render every tick, only if cell.active changes)
-        const currentNote = this.pauseButton.playing.get() ? this.currentNote.get() : Signal.subtle.untrack(() => this.currentNote.get());
-
-        this.cells.forEach(cell => cell.render(currentNote));
+        this.cells.forEach(cell => cell.render());
     }
 
     setPattern(pattern: Pattern) {

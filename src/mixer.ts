@@ -1,4 +1,6 @@
 import { Assets } from "./assets";
+import { Grid } from "./grid";
+import { Sliders } from "./sliders";
 
 export type AudioId = string;
 
@@ -7,6 +9,9 @@ export class AudioMixer {
     private buffers: Map<AudioId, AudioBuffer> = new Map();
     private masterGain: GainNode;
     private trackGains: Map<AudioId, GainNode> = new Map();
+    private lastPlayedNote = -1;
+    private grid?: Grid;
+    private sliders?: Sliders;
 
     constructor() {
         this.ctx = new AudioContext()
@@ -45,5 +50,19 @@ export class AudioMixer {
             source.connect(this.trackGains.get(id)!);
             source.start();
         });
+    }
+
+    connect(grid: Grid, sliders: Sliders) {
+        this.grid = grid;
+        this.sliders = sliders;
+    }
+
+    render() {
+        this.setMasterVolume(this.sliders!.volume().get());
+        const audioIdsToPlay = this.grid!.playingAudioIds.get();
+        if(audioIdsToPlay.note !== this.lastPlayedNote) {
+            this.lastPlayedNote = audioIdsToPlay.note;
+            this.playSounds(audioIdsToPlay.ids);
+        }
     }
 }

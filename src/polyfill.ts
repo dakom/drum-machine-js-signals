@@ -22,11 +22,13 @@ function processPending() {
   watcher.watch();
 }
 
-export function effect(callback: () => () => void) {
-  let cleanup = () => {};
+export function effect(callback: (() => () => void) | (() => void)) {
+  let cleanup: (() => void) | void;
   
   const computed = new Signal.Computed(() => {
-    cleanup();
+    if(cleanup) {
+      cleanup();
+    }
     cleanup = callback();
   });
   
@@ -35,6 +37,8 @@ export function effect(callback: () => () => void) {
   
   return () => {
     watcher.unwatch(computed);
-    cleanup();
+    if(cleanup) {
+      cleanup();
+    }
   };
 }

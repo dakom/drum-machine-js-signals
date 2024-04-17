@@ -9,7 +9,7 @@ import {effect} from "./polyfill"
 import { Signal } from 'signal-polyfill';
 import { Assets } from './assets';
 import { CONFIG } from './config';
-import { getPatternUrl, setPatternUrl } from './pattern';
+import { PatternManager} from './pattern';
 import { PauseButton } from './pause';
 
 // main container
@@ -83,9 +83,12 @@ effect(() => {
                     const pauseButton = new PauseButton();
                     const ticker = new Ticker(mixer, pauseButton);
                     const playhead = new Playhead(ticker, sliders);
-                    const grid = new Grid(playhead, pauseButton);
+                    const grid = new Grid(playhead);
                     const gridLabels = new GridLabels(mixer);
+                    const patternManager = new PatternManager(grid, sliders);
 
+                    // we have a cyclical dependency here, so we need to connect them after they're all created
+                    mixer.connect(grid, sliders);
 
                     // append them to the main container
                     // with a bit of layout help
@@ -108,46 +111,14 @@ effect(() => {
                     main.appendChild(app);
 
                     // apply the initial pattern
-                    const pattern = getPatternUrl() ?? CONFIG.INITIAL_PATTERN;
+                    const pattern = patternManager.getInitial();
 
                     grid.setPattern(pattern);
                     sliders.setPattern(pattern);
 
-                    // kick off the renderer for the components that render every tick 
-                    effect(() => {
-                        [grid, playhead].forEach(component => component.render());
-                        return () => {}
-                    });
-
-                    // kick off the renderer for the components that render on immediate state changes
-                    effect(() => {
-                        [pauseButton, gridLabels].forEach(component => component.render());
-                        return () => {}
-                    });
-
-                    // kick off the audio effects
-                    let lastPlayedNote = -1;
-                    effect(() => {
-                        mixer.setMasterVolume(sliders.volume().get());
-                        const audioIdsToPlay = grid.playingAudioIds.get();
-                        if(audioIdsToPlay.note !== lastPlayedNote) {
-                            lastPlayedNote = audioIdsToPlay.note;
-                            mixer.playSounds(audioIdsToPlay.ids);
-                        }
-                        return () => {}
-                    });
-
-                    // kick off the url updater
-                    effect(() => {
-                        const pattern = {
-                            speed: sliders.speed().get(),
-                            volume: sliders.volume().get(),
-                            notes: grid.patternNotes.get(),
-                        }
-                        setPatternUrl(pattern);
-                        return () => {}
-                    })
-
+                    // kick off all components, each with their own effect lifecycle
+                    [grid, playhead, pauseButton, gridLabels, mixer, patternManager]
+                        .forEach(component => effect(component.render.bind(component)));
                 })
             break;
         // exhaustiveness

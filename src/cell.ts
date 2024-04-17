@@ -27,7 +27,7 @@ export class Cell {
     lastPhase: CellPhase | undefined;
 
 
-    constructor(public readonly id: CellId) {
+    constructor(public readonly id: CellId, private currentNote: Signal.Computed<number>) {
         this.elem = document.createElement('div');
         this.elem.classList.add(style.cell);
 
@@ -39,18 +39,18 @@ export class Cell {
 
     }
 
-    phase(currentNote: number) {
+    phase() {
         if(!this.active.get()) {
             return CellPhase.Off;
-        } else if(this.id.col === currentNote) {
+        } else if(this.id.col === this.currentNote.get()) {
             return CellPhase.Playing;
         } else {
             return CellPhase.Mute;
         }
     }
 
-    render(currentNote: number) {
-        const phase = this.phase(currentNote);    
+    render() {
+        const phase = this.phase();    
 
         if(phase === this.lastPhase) {
             return;

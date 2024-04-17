@@ -1,6 +1,8 @@
 // This is just a way to load/save predefined patterns
 // uses the URL for "storage" and sharing
 import { CONFIG } from "./config";
+import { Grid } from "./grid";
+import { Sliders } from "./sliders";
 
 export interface Pattern {
     notes: Array<Array<boolean>>,
@@ -8,24 +10,34 @@ export interface Pattern {
     volume: number,
 }
 
-export function setPatternUrl(pattern: Pattern) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('pattern', serialize(pattern));
-    window.history.replaceState({}, '', url.toString());
-}
+export class PatternManager {
+    constructor(private grid: Grid, private sliders: Sliders) {}
 
-export function getPatternUrl(): Pattern | null {
-    const url = new URL(window.location.href);
-    const patternString = url.searchParams.get('pattern');
-    if(!patternString) {
-        return null;
+    getInitial(): Pattern {
+        const url = new URL(window.location.href);
+        const patternString = url.searchParams.get('pattern');
+        if(!patternString) {
+            return CONFIG.INITIAL_PATTERN;
+        }
+        try {
+            const pattern = deserialize(patternString);
+            return pattern
+        } catch(e) {
+            console.error(e);
+            return CONFIG.INITIAL_PATTERN;
+        }
     }
-    try {
-        const pattern = deserialize(patternString);
-        return pattern
-    } catch(e) {
-        console.error(e);
-        return null;
+
+    render() {
+        const pattern = {
+            speed: this.sliders.speed().get(),
+            volume: this.sliders.volume().get(),
+            notes: this.grid.patternNotes.get(),
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('pattern', serialize(pattern));
+        window.history.replaceState({}, '', url.toString());
     }
 }
 
