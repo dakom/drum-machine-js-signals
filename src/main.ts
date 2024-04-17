@@ -31,98 +31,53 @@ updateWindowSize();
 
 // initial state
 
-export type InitialState = {
-    kind: "loading"
-} | {
-    kind: "ready",
-    assets: Assets,
-} | {
-    kind: "playing",
-    mixer: AudioMixer,
-    assets: Assets,
-}
-
-const initialState = new Signal.State<InitialState>({
-    kind: "loading"
-});
-
-const loadingScreen = new LoadingScreen(initialState);
+const loadingScreen = new LoadingScreen();
 main.appendChild(loadingScreen.elem);
 
-effect(() => {
-    loadingScreen.render();
-    const state = initialState.get();
+loadingScreen.render(async ({mixer, assets}: {mixer: AudioMixer, assets: Assets}) => {
+    loadingScreen.elem.remove();
+    await mixer.assignAssets(assets)
 
-    switch(state.kind) {
-        case "loading":
-            Assets.load()
-                .then(assets => {
-                    initialState.set({kind: "ready", assets});
-                })
-            break;
 
-        case "ready":
-            // wait for user to press start to create audio context and begin mixer etc.
-            // since some devices require user interaction to create audio context
-            loadingScreen.onStart = () => {
-                const mixer = new AudioMixer();
-                initialState.set({kind: "playing", assets: state.assets, mixer});
-            }
+    // audio is ready, create the components
+    const sliders = new Sliders();
+    const pauseButton = new PauseButton();
+    const ticker = new Ticker(mixer, pauseButton);
+    const playhead = new Playhead(ticker, sliders);
+    const grid = new Grid(playhead);
+    const gridLabels = new GridLabels(mixer);
+    const patternManager = new PatternManager(grid, sliders);
 
-            if(CONFIG.DEBUG_AUTO_START) {
-                // effect won't be seen if we set immediately
-                queueMicrotask(loadingScreen.onStart);
-            }
-            break;
-        case "playing":
-            const {mixer, assets} = state;
-            mixer.assignAssets(assets)
-                .then(() => {
-                    // audio is ready, create the components
-                    const sliders = new Sliders();
-                    const pauseButton = new PauseButton();
-                    const ticker = new Ticker(mixer, pauseButton);
-                    const playhead = new Playhead(ticker, sliders);
-                    const grid = new Grid(playhead);
-                    const gridLabels = new GridLabels(mixer);
-                    const patternManager = new PatternManager(grid, sliders);
+    // we have a cyclical dependency here, so we need to connect them after they're all created
+    mixer.connect(grid, sliders);
 
-                    // we have a cyclical dependency here, so we need to connect them after they're all created
-                    mixer.connect(grid, sliders);
+    // append them to the main container
+    // with a bit of layout help
+    const gridAndPlayheadElem = document.createElement('div');
+    gridAndPlayheadElem.classList.add(style.gridAndPlayhead);
+    gridAndPlayheadElem.appendChild(grid.elem);
+    gridAndPlayheadElem.appendChild(playhead.elem);
 
-                    // append them to the main container
-                    // with a bit of layout help
-                    const gridAndPlayheadElem = document.createElement('div');
-                    gridAndPlayheadElem.classList.add(style.gridAndPlayhead);
-                    gridAndPlayheadElem.appendChild(grid.elem);
-                    gridAndPlayheadElem.appendChild(playhead.elem);
+    const gridAndLabelsElem = document.createElement('div');
+    gridAndLabelsElem.classList.add(style.gridAndLabels);
+    gridAndLabelsElem.appendChild(gridLabels.elem);
+    gridAndLabelsElem.appendChild(gridAndPlayheadElem);
 
-                    const gridAndLabelsElem = document.createElement('div');
-                    gridAndLabelsElem.classList.add(style.gridAndLabels);
-                    gridAndLabelsElem.appendChild(gridLabels.elem);
-                    gridAndLabelsElem.appendChild(gridAndPlayheadElem);
+    const app = document.createElement('div');
+    app.classList.add(style.app);
+    app.appendChild(gridAndLabelsElem);
+    app.appendChild(sliders.elem);
+    app.appendChild(pauseButton.elem);
 
-                    const app = document.createElement('div');
-                    app.classList.add(style.app);
-                    app.appendChild(gridAndLabelsElem);
-                    app.appendChild(sliders.elem);
-                    app.appendChild(pauseButton.elem);
+    main.appendChild(app);
 
-                    main.appendChild(app);
+    // apply the initial pattern
+    const pattern = patternManager.getInitial();
 
-                    // apply the initial pattern
-                    const pattern = patternManager.getInitial();
+    grid.setPattern(pattern);
+    sliders.setPattern(pattern);
 
-                    grid.setPattern(pattern);
-                    sliders.setPattern(pattern);
-
-                    // kick off all components
-                    [grid, playhead, pauseButton, gridLabels, mixer, patternManager, ticker]
-                        .forEach(({component}) => component());
-                })
-            break;
-        // exhaustiveness
-        default: state satisfies never;
-    }
-    return () => { }
-})
+    // kick off all components
+    [grid, playhead, pauseButton, gridLabels, mixer, patternManager, ticker]
+        .forEach(({component}) => component());
+});

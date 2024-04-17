@@ -1,65 +1,75 @@
 import { Signal } from "signal-polyfill";
 import style from "./loading.module.css";
-import { InitialState } from "./main";
+import { Assets } from "./assets";
+import { AudioMixer } from "./mixer";
+import { effect } from "./polyfill";
+import { CONFIG } from "./config";
+
+
+type LoadingState = {
+    kind: "loading"
+} | {
+    kind: "ready",
+    assets: Assets
+}
+
+type OnStart = ({mixer, assets}: {mixer: AudioMixer, assets: Assets}) => void;
 
 export class LoadingScreen {
     public readonly elem: HTMLDivElement;
-    private loadingElem: HTMLDivElement | undefined;
-    private startElem: HTMLDivElement | undefined;
-    private githubElem: HTMLAnchorElement | undefined;
 
-    public onStart: (() => void) | undefined;
-
-    constructor(private initialState: Signal.State<InitialState>) {
+    constructor() {
         this.elem = document.createElement('div');
         this.elem.classList.add(style.container);
     }
 
-    render() {
-        const kind = this.initialState.get().kind;
+    render(onStart: OnStart) {
+        const stateSignal = new Signal.State<LoadingState>({kind: "loading"});
 
-        switch(kind) {
-            case "loading":
-                this.loadingElem = document.createElement('div');
-                this.loadingElem.innerText = 'Loading';
-                this.loadingElem.classList.add(style.loading);
-                this.elem.appendChild(this.loadingElem);
+        effect(() => {
+            const state = stateSignal.get();
 
-                this.githubElem = document.createElement('a');
-                this.githubElem.href = 'https://github.com/dakom/drum-machine-js-signals';
-                this.githubElem.classList.add(style.github);
-                const textElem = document.createElement('div');
-                textElem.innerText = 'github repo';
-                textElem.classList.add(style.githubText);
-                const imgElem = document.createElement('img');
-                imgElem.src = 'image/github-mark.svg';
-                imgElem.classList.add(style.githubImage);
-                this.githubElem.appendChild(imgElem);
-                this.githubElem.appendChild(textElem);
-                this.elem.appendChild(this.githubElem);
-                break;
-            case "ready":
-                this.elem.removeChild(this.loadingElem!);
-                this.elem.removeChild(this.githubElem!);
+            const githubHtml = `
+                <a class="${style.github}" href="https://github.com/dakom/drum-machine-js-signals">
+                    <img class="${style.githubImage}" src="image/github-mark.svg">
+                    <div class="${style.githubText}">github repo</div>
+                </a>
+            `;
 
-                this.startElem = document.createElement('div');
-                this.startElem.innerText = 'Start';
-                this.startElem.classList.add(style.button);
-                this.elem.appendChild(this.startElem);
-                this.elem.appendChild(this.githubElem!);
+            switch(state.kind) {
+                case "loading":
+                    this.elem.innerHTML = `
+                        <div class="${style.loading}">Loading</div>
+                        ${githubHtml}
+                    `
 
-                this.startElem.addEventListener('click', () => {
-                    if(this.onStart) {
-                        this.onStart();
-                    } else {
-                        console.error("No onStart handler set");
+                    Assets.load()
+                        .then(assets => {
+                            stateSignal.set({kind: "ready", assets});
+                        })
+
+                    break;
+                case "ready":
+                    this.elem.innerHTML = `
+                        <div id="start" class="${style.button}">Start</div>
+                        ${githubHtml}
+                    `
+
+                    const clickHandler = () => {
+                        const mixer = new AudioMixer();
+                        onStart({mixer, assets: state.assets});
                     }
-                })
-                break;
-            case "playing":
-                if(this.elem) {
-                    this.elem.remove();
-                }
-        }
+
+                    // wait for user to press start to create audio context and begin mixer etc.
+                    // since some devices require user interaction to create audio context
+                    this.elem.querySelector("#start")!.addEventListener('click', clickHandler)
+
+                    if(CONFIG.DEBUG_AUTO_START) {
+                        // effect won't be seen if we set immediately
+                        queueMicrotask(clickHandler);
+                    }
+                    break;
+            }
+        })
     }
 }
