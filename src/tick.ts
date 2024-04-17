@@ -1,30 +1,39 @@
 import {Signal} from 'signal-polyfill';
 import { AudioMixer } from './mixer';
 import { PauseButton } from './pause';
+import { effect } from './polyfill';
 
 export class Ticker {
     public readonly tick: Signal.State<number>;
 
-    constructor(mixer: AudioMixer, pauseButton: PauseButton) {
+    constructor(private mixer: AudioMixer, private pauseButton: PauseButton) {
         this.tick = new Signal.State(mixer.ctx.currentTime);
-        let lastIsPlaying = pauseButton.playing.get();
+    }
+
+    component = () => {
+        let isPlaying = this.pauseButton.playing.get();
+        let lastIsPlaying = isPlaying;
         let pausedAt = 0;
         let accumulatedPause = 0;
-        const onTick = () => {
-            const isPlaying = pauseButton.playing.get();
+
+        effect(() => {
+            isPlaying = this.pauseButton.playing.get();
 
             if(lastIsPlaying !== isPlaying) {
                 if(!isPlaying) {
-                    pausedAt = mixer.ctx.currentTime;
+                    pausedAt = this.mixer.ctx.currentTime;
                 } else {
-                    accumulatedPause += mixer.ctx.currentTime - pausedAt;
+                    accumulatedPause += this.mixer.ctx.currentTime - pausedAt;
                 }
 
                 lastIsPlaying = isPlaying;
             }
 
+        })
+
+        const onTick = () => {
             if(isPlaying) {
-                this.tick.set(mixer.ctx.currentTime - accumulatedPause);
+                this.tick.set(this.mixer.ctx.currentTime - accumulatedPause);
             }
 
             requestAnimationFrame(onTick);

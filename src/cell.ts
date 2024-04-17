@@ -1,5 +1,6 @@
 import { Signal } from 'signal-polyfill';
 import style from './cell.module.css'
+import { effect } from './polyfill';
 
 export class CellId {
     constructor(public readonly row: number, public readonly col: number) {}
@@ -50,26 +51,28 @@ export class Cell {
     }
 
     render() {
-        const phase = this.phase();    
+        effect(() => {
+            const phase = this.phase();    
 
-        if(phase === this.lastPhase) {
-            return;
-        }
+            if(phase === this.lastPhase) {
+                return;
+            }
 
-        this.lastPhase = phase;
+            this.lastPhase = phase;
 
-        this.elem.classList.remove(style.phaseOff, style.phaseMute, style.phasePlaying);
-        switch (phase) {
-            case CellPhase.Off:
-                this.elem.classList.add(style.phaseOff);
-                break;
-            case CellPhase.Mute:
-                this.elem.classList.add(style.phaseMute);
-                break;
-            case CellPhase.Playing:
-                this.elem.classList.add(style.phasePlaying);
-                break;
-        }
+            this.elem.classList.remove(style.phaseOff, style.phaseMute, style.phasePlaying);
+            switch (phase) {
+                case CellPhase.Off:
+                    this.elem.classList.add(style.phaseOff);
+                    break;
+                case CellPhase.Mute:
+                    this.elem.classList.add(style.phaseMute);
+                    break;
+                case CellPhase.Playing:
+                    this.elem.classList.add(style.phasePlaying);
+                    break;
+            }
+        })
     }
 }
 

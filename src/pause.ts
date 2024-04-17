@@ -1,5 +1,7 @@
 import { Signal } from 'signal-polyfill';
 import style from './pause.module.css';
+import { effect } from './polyfill';
+
 export class PauseButton {
     public readonly elem: HTMLDivElement;
     public readonly playing: Signal.State<boolean>;
@@ -40,16 +42,18 @@ export class PauseButton {
 
     }
 
-    render() {
-        if(this.playing.get()) {
-            this.imgElem.innerHTML = pauseButtonSvg({
-                colorClass: this.hover.get() ? style.colorHover : style.color
-            });
-        } else {
-            this.imgElem.innerHTML = playButtonSvg({
-                colorClass: this.hover.get() ? style.colorHover : style.color
-            });
-        }
+    component = () => {
+        effect(() => {
+            if(this.playing.get()) {
+                this.imgElem.innerHTML = pauseButtonSvg({
+                    colorClass: this.hover.get() ? style.colorHover : style.color
+                });
+            } else {
+                this.imgElem.innerHTML = playButtonSvg({
+                    colorClass: this.hover.get() ? style.colorHover : style.color
+                });
+            }
+        });
     }
 }
 

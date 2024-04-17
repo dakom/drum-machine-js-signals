@@ -2,6 +2,7 @@
 // uses the URL for "storage" and sharing
 import { CONFIG } from "./config";
 import { Grid } from "./grid";
+import { effect } from "./polyfill";
 import { Sliders } from "./sliders";
 
 export interface Pattern {
@@ -28,16 +29,18 @@ export class PatternManager {
         }
     }
 
-    render() {
-        const pattern = {
-            speed: this.sliders.speed().get(),
-            volume: this.sliders.volume().get(),
-            notes: this.grid.patternNotes.get(),
-        }
+    component = () => {
+        effect(() => {
+            const pattern = {
+                speed: this.sliders.speed().get(),
+                volume: this.sliders.volume().get(),
+                notes: this.grid.patternNotes.get(),
+            }
 
-        const url = new URL(window.location.href);
-        url.searchParams.set('pattern', serialize(pattern));
-        window.history.replaceState({}, '', url.toString());
+            const url = new URL(window.location.href);
+            url.searchParams.set('pattern', serialize(pattern));
+            window.history.replaceState({}, '', url.toString());
+        })
     }
 }
 

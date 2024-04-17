@@ -116,9 +116,9 @@ effect(() => {
                     grid.setPattern(pattern);
                     sliders.setPattern(pattern);
 
-                    // kick off all components, each with their own effect lifecycle
-                    [grid, playhead, pauseButton, gridLabels, mixer, patternManager]
-                        .forEach(component => effect(component.render.bind(component)));
+                    // kick off all components
+                    [grid, playhead, pauseButton, gridLabels, mixer, patternManager, ticker]
+                        .forEach(({component}) => component());
                 })
             break;
         // exhaustiveness

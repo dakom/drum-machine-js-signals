@@ -5,6 +5,7 @@ import style from './grid.module.css'
 import { Playhead } from './playhead';
 import { AudioId, AudioMixer } from './mixer';
 import { Pattern } from './pattern';
+import { effect } from './polyfill';
 
 type CellIdKey = string;
 
@@ -71,7 +72,7 @@ export class Grid {
         });
     }
 
-    render() {
+    component = () => {
         this.cells.forEach(cell => cell.render());
     }
 
@@ -110,17 +111,19 @@ export class GridLabels {
         }) 
     }
 
-    render() {
+    component = () => {
         this.enabledSignals.forEach((enabledSignal, id) => {
             const labelElem = this.labelElems.get(id);
             if(!labelElem) {
                 throw new Error(`No label element for ${id}`);
             }
 
-            const enabled = enabledSignal.get();
-            labelElem.classList.toggle(style.labelDisabled, !enabled);
+            effect(() => {
+                const enabled = enabledSignal.get();
+                labelElem.classList.toggle(style.labelDisabled, !enabled);
 
-            this.mixer.setTrackVolume(id, enabled ? 1 : 0);
+                this.mixer.setTrackVolume(id, enabled ? 1 : 0);
+            });
         });
     }
 }

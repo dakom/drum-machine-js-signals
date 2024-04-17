@@ -1,5 +1,6 @@
 import { Assets } from "./assets";
 import { Grid } from "./grid";
+import { effect } from "./polyfill";
 import { Sliders } from "./sliders";
 
 export type AudioId = string;
@@ -57,12 +58,14 @@ export class AudioMixer {
         this.sliders = sliders;
     }
 
-    render() {
-        this.setMasterVolume(this.sliders!.volume().get());
-        const audioIdsToPlay = this.grid!.playingAudioIds.get();
-        if(audioIdsToPlay.note !== this.lastPlayedNote) {
-            this.lastPlayedNote = audioIdsToPlay.note;
-            this.playSounds(audioIdsToPlay.ids);
-        }
+    component = () => {
+        effect(() => {
+            this.setMasterVolume(this.sliders!.volume().get());
+            const audioIdsToPlay = this.grid!.playingAudioIds.get();
+            if(audioIdsToPlay.note !== this.lastPlayedNote) {
+                this.lastPlayedNote = audioIdsToPlay.note;
+                this.playSounds(audioIdsToPlay.ids);
+            }
+        });
     }
 }
