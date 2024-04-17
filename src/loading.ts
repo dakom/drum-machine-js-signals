@@ -4,8 +4,10 @@ import { InitialState } from "./main";
 
 export class LoadingScreen {
     public readonly elem: HTMLDivElement;
-    private textElem: HTMLDivElement | undefined;
-    private buttonElem: HTMLDivElement | undefined;
+    private loadingElem: HTMLDivElement | undefined;
+    private startElem: HTMLDivElement | undefined;
+    private githubElem: HTMLAnchorElement | undefined;
+
     public onStart: (() => void) | undefined;
 
     constructor(private initialState: Signal.State<InitialState>) {
@@ -18,20 +20,35 @@ export class LoadingScreen {
 
         switch(kind) {
             case "loading":
-                this.textElem = document.createElement('div');
-                this.textElem.innerText = 'Loading...';
-                this.textElem.classList.add(style.loading);
-                this.elem.appendChild(this.textElem);
+                this.loadingElem = document.createElement('div');
+                this.loadingElem.innerText = 'Loading';
+                this.loadingElem.classList.add(style.loading);
+                this.elem.appendChild(this.loadingElem);
+
+                this.githubElem = document.createElement('a');
+                this.githubElem.href = 'https://github.com/dakom/drum-machine-js-signals';
+                this.githubElem.classList.add(style.github);
+                const textElem = document.createElement('div');
+                textElem.innerText = 'github repo';
+                textElem.classList.add(style.githubText);
+                const imgElem = document.createElement('img');
+                imgElem.src = 'image/github-mark.svg';
+                imgElem.classList.add(style.githubImage);
+                this.githubElem.appendChild(imgElem);
+                this.githubElem.appendChild(textElem);
+                this.elem.appendChild(this.githubElem);
                 break;
             case "ready":
-                this.elem.removeChild(this.textElem!);
+                this.elem.removeChild(this.loadingElem!);
+                this.elem.removeChild(this.githubElem!);
 
-                this.buttonElem = document.createElement('div');
-                this.buttonElem.innerText = 'Start';
-                this.buttonElem.classList.add(style.button);
-                this.elem.appendChild(this.buttonElem);
+                this.startElem = document.createElement('div');
+                this.startElem.innerText = 'Start';
+                this.startElem.classList.add(style.button);
+                this.elem.appendChild(this.startElem);
+                this.elem.appendChild(this.githubElem!);
 
-                this.buttonElem.addEventListener('click', () => {
+                this.startElem.addEventListener('click', () => {
                     if(this.onStart) {
                         this.onStart();
                     } else {
