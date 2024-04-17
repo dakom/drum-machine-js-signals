@@ -5,10 +5,7 @@ import { Playhead } from './playhead';
 import { AudioMixer } from './mixer';
 import { LoadingScreen } from './loading';
 import { Ticker } from './tick';
-import {effect} from "./polyfill"
-import { Signal } from 'signal-polyfill';
 import { Assets } from './assets';
-import { CONFIG } from './config';
 import { PatternManager} from './pattern';
 import { PauseButton } from './pause';
 
